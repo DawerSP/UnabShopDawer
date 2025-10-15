@@ -40,7 +40,7 @@ Fue creada con fines académicos y busca replicar el funcionamiento de una tiend
 
 - **Nombre:** Dawer Stiven Patiño Carvajal
 - **Universidad:** Universidad Autónoma de Bucaramanga (UNAB) 🎓
-- **Correo de contacto:** tuemail@correo.com
+- **Correo de contacto:** dpatino526@unab.edu.co
 
 ---
 
