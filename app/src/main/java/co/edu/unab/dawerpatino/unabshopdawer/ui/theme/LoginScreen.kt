@@ -50,7 +50,7 @@ import co.edu.unab.dawerpatino.unabshopdawer.R
 @Preview
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun LoginScreen() {
+fun LoginScreen(onClickRegister :()->Unit = {}) {
     Scaffold { paddingValues ->
         Column(
             modifier = Modifier
@@ -138,7 +138,9 @@ fun LoginScreen() {
             }
             Spacer(modifier = Modifier.height(16.dp))
             // Enlace para Registrarse
-            TextButton(onClick = {}) {
+            TextButton(onClick = onClickRegister) {
+
+
                 Text(
                     text = "¿No tienes una cuenta? Regístrate",
                     color = Color(0xFFFF9900)

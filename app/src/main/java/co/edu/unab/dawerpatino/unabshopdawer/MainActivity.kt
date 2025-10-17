@@ -24,23 +24,31 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
+            UnabShopDawerTheme {
+                LoginScreen()
 
-            val navController = rememberNavController()
-            val startDestination = "login"
-            NavHost(navController, startDestination) {
-                composable(route = "login") {
-                    LoginScreen()
-                }
-                composable(route = "Register") {
-                    RegisterScreen()
-                }
-                composable(route = "Home") {
-                    HomeScreen()
+
+                val navController = rememberNavController()
+                val startDestination = "login"
+                NavHost(navController, startDestination) {
+                    composable(route = "login") {
+                        LoginScreen(onClickRegister = {
+                            navController.navigate("register")
+                        })
+                    }
+                    composable(route = "Register") {
+                        RegisterScreen(onClickBack = {
+                            navController.popBackStack()
+                        })
+                    }
+                    composable(route = "Home") {
+                        HomeScreen()
+                    }
                 }
             }
 
 
-            RegisterScreen()
+
         }
     }
 }

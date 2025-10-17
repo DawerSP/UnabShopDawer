@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "602560300725",
+    "project_id": "unabshopdawer",
+    "storage_bucket": "unabshopdawer.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:602560300725:android:1dc9f8c095a1268829a0fc",
+        "android_client_info": {
+          "package_name": "co.edu.unab.dawerpatino.unabshopdawer"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBxEm2lvREKRAHK2GZ9b-66IBL4r8oTjBI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
