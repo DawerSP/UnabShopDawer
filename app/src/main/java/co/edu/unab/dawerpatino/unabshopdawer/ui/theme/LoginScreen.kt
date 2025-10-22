@@ -53,6 +53,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalView
+import androidx.compose.ui.text.input.KeyboardCapitalization
 
 import co.edu.unab.dawerpatino.unabshopdawer.R
 import com.google.firebase.Firebase
@@ -72,6 +73,8 @@ fun LoginScreen(onClickRegister :()->Unit = {}, onSuccessfulLogin :()->Unit = {}
     var inputEmail by remember { mutableStateOf("")}
     var inputPassword by remember { mutableStateOf("")}
     var loginError by remember { mutableStateOf("") }
+    var emailError by remember {mutableStateOf("") }
+    var passwordError by remember { mutableStateOf("") }
 
     Scaffold { paddingValues ->
         Column(
@@ -115,8 +118,22 @@ fun LoginScreen(onClickRegister :()->Unit = {}, onSuccessfulLogin :()->Unit = {}
                         tint = Color(0xFF666666) // Color gris
                     )
                 },
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
+                keyboardOptions = KeyboardOptions(
+                    capitalization = KeyboardCapitalization.None,
+                    keyboardType = KeyboardType.Email,
+                    autoCorrect = false,
+
+                ),
                 modifier = Modifier.fillMaxWidth(),
+                supportingText = {
+                    if (emailError.isNotEmpty()){
+                        Text(
+                            text = emailError,
+                            color = Color.Red
+                        )
+                    }
+                },
+
                 shape = RoundedCornerShape(12.dp),
 
                 )
@@ -135,10 +152,25 @@ fun LoginScreen(onClickRegister :()->Unit = {}, onSuccessfulLogin :()->Unit = {}
                         tint = Color(0xFF666666) // Color gris
                     )
                 },
-                visualTransformation = PasswordVisualTransformation(),
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
                 modifier = Modifier.fillMaxWidth(),
+                supportingText = {
+                    if(passwordError.isNotEmpty()){
+                        Text(
+                            text = passwordError,
+                            color = Color.Red
+                        )
+                    }
+                },
+                visualTransformation = PasswordVisualTransformation(),
+                keyboardOptions = KeyboardOptions(
+                    capitalization = KeyboardCapitalization.None,
+                    keyboardType = KeyboardType.Password,
+                    autoCorrect = false,
+
+                    ),
+
                 shape = RoundedCornerShape(12.dp),
+
                 colors = OutlinedTextFieldDefaults.colors(
                     focusedBorderColor = Color(0xFF6200EE), // Color morado
                     unfocusedBorderColor = Color(0xFFCCCCCC) // Color gris claro
@@ -160,22 +192,29 @@ fun LoginScreen(onClickRegister :()->Unit = {}, onSuccessfulLogin :()->Unit = {}
                 onClick = {
 
                     val isValidEmail:Boolean = validateEmail(inputEmail).first
+                    val isValidPassword = validatePassword(inputPassword).first
+                    emailError = validateEmail(inputEmail).second
+                    passwordError= validatePassword(inputPassword).second
 
-                    auth.signInWithEmailAndPassword(inputEmail,inputPassword)
-                        .addOnCompleteListener(activity) { task ->
-                            if (task.isSuccessful){
-                                onSuccessfulLogin()
+                    if (isValidEmail && isValidPassword) {
 
 
-                            }else{
-                                loginError = when(task.exception){
-                                    is FirebaseAuthInvalidCredentialsException -> "Correo o contraseña incorrecta"
-                                    is FirebaseAuthInvalidUserException -> "No existe una cuenta con este correo"
-                                    else -> "Error al iniciar sesión. Intenta de nuevo"
+                        auth.signInWithEmailAndPassword(inputEmail, inputPassword)
+                            .addOnCompleteListener(activity) { task ->
+                                if (task.isSuccessful) {
+                                    onSuccessfulLogin()
+
+
+                                } else {
+                                    loginError = when (task.exception) {
+                                        is FirebaseAuthInvalidCredentialsException -> "Correo o contraseña incorrecta"
+                                        is FirebaseAuthInvalidUserException -> "No existe una cuenta con este correo"
+                                        else -> "Error al iniciar sesión. Intenta de nuevo"
+                                    }
                                 }
-                            }
 
-                        }
+                            }
+                    }
 
                 },
                 modifier = Modifier
