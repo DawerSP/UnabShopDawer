@@ -18,6 +18,8 @@ import co.edu.unab.dawerpatino.unabshopdawer.ui.theme.HomeScreen
 import co.edu.unab.dawerpatino.unabshopdawer.ui.theme.LoginScreen
 import co.edu.unab.dawerpatino.unabshopdawer.ui.theme.RegisterScreen
 import co.edu.unab.dawerpatino.unabshopdawer.ui.theme.UnabShopDawerTheme
+import com.google.firebase.Firebase
+import com.google.firebase.auth.auth
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -29,7 +31,15 @@ class MainActivity : ComponentActivity() {
 
 
                 val navController = rememberNavController()
-                val startDestination = "login"
+                var startDestination = "login"
+                val auth = Firebase.auth
+                val currentUser = auth.currentUser
+
+                if(currentUser != null){
+                    startDestination = "home"
+                }else{
+                    startDestination = "login"
+                }
                 NavHost(navController, startDestination) {
                     composable(route = "login") {
                         LoginScreen(onClickRegister = {
@@ -43,10 +53,19 @@ class MainActivity : ComponentActivity() {
                     composable(route = "Register") {
                         RegisterScreen(onClickBack = {
                             navController.popBackStack()
+                        }, onSuccesfulRegister = {
+                            navController.navigate("home"){
+                                popUpTo(0)
+
+                            }
                         })
                     }
                     composable(route = "Home") {
-                        HomeScreen()
+                        HomeScreen(onClickLogout = {
+                            navController.navigate("login"){
+                                popUpTo(0)
+                            }
+                        })
                     }
                 }
             }

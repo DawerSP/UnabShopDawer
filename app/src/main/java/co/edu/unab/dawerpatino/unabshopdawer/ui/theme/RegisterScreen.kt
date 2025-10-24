@@ -1,5 +1,6 @@
 package co.edu.unab.dawerpatino.unabshopdawer.ui.theme
 
+import android.app.Activity
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -40,6 +41,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.automirrored.filled.ExitToApp
 
 import androidx.compose.material.icons.filled.*
@@ -48,9 +52,12 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.platform.LocalView
 
 import co.edu.unab.dawerpatino.unabshopdawer.R
 import com.google.firebase.Firebase
+import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException
+import com.google.firebase.auth.FirebaseAuthUserCollisionException
 import com.google.firebase.auth.auth
 
 // Colores personalizados
@@ -59,9 +66,10 @@ import com.google.firebase.auth.auth
 @Preview
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun RegisterScreen(onClickBack :()->Unit = {}) {
+fun RegisterScreen(onClickBack :()->Unit = {}, onSuccesfulRegister:()->Unit = {}) {
 
     val auth = Firebase.auth
+    val activity = LocalView.current.context as Activity
 
     //ESTADO DE LOS INPUT
     var inputName by remember { mutableStateOf("") }
@@ -99,7 +107,9 @@ fun RegisterScreen(onClickBack :()->Unit = {}) {
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
-                .padding(horizontal = 32.dp),
+                .padding(horizontal = 32.dp)
+                .imePadding()
+                .verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
@@ -240,7 +250,17 @@ fun RegisterScreen(onClickBack :()->Unit = {}) {
 
                     if (isValidName && isValidEmail && isValidPassword && isValidConfirmPassword){
                         auth.createUserWithEmailAndPassword(inputEmail, inputPassword)
-                        .addOnCompleteListener(activity) { task ->}
+                        .addOnCompleteListener(activity) { task ->
+                            if (task.isSuccessful){
+                                onSuccesfulRegister()
+                            }else{
+                                registerError = when(task.isSuccessful){
+                                    is FirebaseAuthInvalidCredentialsException -> "Correo invalido"
+                                    is FirebaseAuthUserCollisionException -> "Correo ya registrado"
+                                    else -> "Error al registrarse"
+                                }
+                            }
+                        }
 
 
                     }else{
