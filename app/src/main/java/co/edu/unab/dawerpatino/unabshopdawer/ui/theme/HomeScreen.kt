@@ -1,100 +1,115 @@
 package co.edu.unab.dawerpatino.unabshopdawer.ui.theme
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ExitToApp
-import androidx.compose.material.icons.filled.Notifications
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ShoppingCart
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MediumTopAppBar
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.sp
-import com.google.firebase.Firebase
-import com.google.firebase.auth.auth
+import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.google.firebase.auth.ktx.auth
+import com.google.firebase.ktx.Firebase
 
-
-@Preview
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun HomeScreen(onClickLogout: () -> Unit = {}) {
-    val auth= Firebase.auth
+fun HomeScreen(
+    onClickLogout: () -> Unit = {},
+    onNavigateToAddProduct: () -> Unit, // <-- PARÁMETRO NUEVO para navegar
+    homeViewModel: HomeViewModel = viewModel()
+) {
+    val auth = Firebase.auth
     val user = auth.currentUser
+    val productos by homeViewModel.productos.collectAsState()
+
     Scaffold(
         topBar = {
-            MediumTopAppBar(
-                title = {
-                    Text(
-                        "Unab Shop",
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 28.sp
-                    )
-                },
+            TopAppBar(
+                title = { Text("Unab Shop") },
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color(0xFFFFA726), titleContentColor = Color.White, actionIconContentColor = Color.White),
                 actions = {
-                    IconButton(onClick = { }) {
-                        Icon(Icons.Filled.Notifications, "Notificaciones")
+                    IconButton(onClick = { /* TODO: Navegar a la pantalla del carrito */ }) {
+                        Icon(imageVector = Icons.Filled.ShoppingCart, contentDescription = "Carrito de compras")
                     }
-                    IconButton(onClick = { }) {
-                        Icon(Icons.Filled.ShoppingCart, "Carrito")
+                    IconButton(onClick = { auth.signOut(); onClickLogout() }) {
+                        Icon(imageVector = Icons.AutoMirrored.Filled.ExitToApp, contentDescription = "Cerrar sesión")
                     }
-                    IconButton(onClick = { }) {
-                        Icon(Icons.AutoMirrored.Filled.ExitToApp, "Carrito")
-                    }
-                },
-                colors = TopAppBarDefaults.mediumTopAppBarColors(
-                    containerColor = Color(0xFFFF9900),
-                    titleContentColor = Color.White,
-                    actionIconContentColor = Color.White
-                )
+                }
             )
         },
-        bottomBar = {
+        // --- BOTÓN FLOTANTE PARA AÑADIR PRODUCTOS ---
+        floatingActionButton = {
+            FloatingActionButton(onClick = onNavigateToAddProduct) {
+                Icon(imageVector = Icons.Default.Add, contentDescription = "Agregar Producto")
+            }
         }
-    ) { paddingValues ->
+    ) { innerPadding ->
         Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(Color(0xFFF5F5F5))
-                .padding(paddingValues)
+            modifier = Modifier.padding(innerPadding).fillMaxSize().padding(16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxSize(),
-                verticalArrangement = Arrangement.Center,
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                Text("HOME SCREEN", fontSize = 30.sp)
+            user?.email?.let { Text(text = "Bienvenido, $it", modifier = Modifier.padding(bottom = 16.dp)) }
 
-                if(user != null){
-                    Text(user.email.toString())
-                }else{
-                    Text("No Hay Usuario")
+            if (productos.isEmpty()) {
+                Column(modifier = Modifier.fillMaxSize(), verticalArrangement = Arrangement.Center, horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text("No hay productos disponibles. ¡Agrega uno nuevo!")
                 }
-                Button(onClick = {
-                    auth.signOut()
-                    onClickLogout()
-                },
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = Color(0xFFFF9900)
-                    )){
-                    Text("Cerrar Sesión")
+            } else {
+                LazyColumn(modifier = Modifier.fillMaxSize(), verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                    items(productos) { producto ->
+                        ProductoCard(producto = producto) // El Card ahora tiene el botón
+                    }
                 }
             }
         }
+    }
+}
+
+// --- TARJETA DEL PRODUCTO ACTUALIZADA ---
+@Composable
+fun ProductoCard(producto: Producto) {
+    Card(modifier = Modifier.fillMaxWidth()) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            Text(text = producto.nombre, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleLarge)
+            Spacer(modifier = Modifier.height(4.dp))
+            Text(text = producto.descripcion, style = MaterialTheme.typography.bodyMedium)
+            Spacer(modifier = Modifier.height(8.dp))
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Text(
+                    text = "$${"%.2f".format(producto.precio)}",
+                    color = MaterialTheme.colorScheme.primary,
+                    fontWeight = FontWeight.Bold,
+                    style = MaterialTheme.typography.titleMedium
+                )
+                // --- BOTÓN PARA AÑADIR AL CARRITO ---
+                Button(onClick = { /* TODO: Lógica para agregar al carrito */ }) {
+                    Text("Añadir al carrito")
+                }
+            }
+        }
+    }
+}
+
+// --- PREVIEW ACTUALIZADO ---
+@Preview(showBackground = true)
+@Composable
+fun HomeScreenPreview() {
+    UnabShopDawerTheme {
+        // En el preview, la navegación no hace nada
+        HomeScreen(onNavigateToAddProduct = {})
     }
 }
